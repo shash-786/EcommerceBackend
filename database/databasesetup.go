@@ -1,36 +1,14 @@
-package controller
+package database
 
-import "github.com/gin-gonic/gin"
+import "go.mongodb.org/mongo-driver/mongo"
 
-func HashPassword(password string) string {
-	return ""
+func DBSet() *mongo.Client {
 }
 
-func VerifyPassword(entered_password string, password_in_db string) (bool, string) {
-	return
+var Client = DBSet()
+
+func UserData(client *mongo.Client, collectionName string) *mongo.Collection {
 }
 
-func Signup() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	}
-}
-
-func Login() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	}
-}
-
-func ProductViewerAdmin() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	}
-}
-
-func SearchProduct() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	}
-}
-
-func SearchProductByQuery() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	}
+func ProductData(clien *mongo.Client, collectionName string) *mongo.Collection {
 }
