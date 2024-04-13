@@ -14,16 +14,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var validate = validator.New()
-
 // TODO: CREATE USER AND PRODUCT COLLECTION
 var (
+	validate          = validator.New()
 	UserCollection    *mongo.Client
 	ProductCollection *mongo.Client
 )
 
 func HashPassword(password string) string {
-	return ""
+
 }
 
 func VerifyPassword(entered_password string, password_in_db string) (bool, string) {

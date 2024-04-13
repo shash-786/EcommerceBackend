@@ -12,14 +12,14 @@ var (
 	ErrCantBuyCartItem        = errors.New("Cannot Update Purchase")
 )
 
-func AddProductToCart() {
+func AddProductToCart() error {
 }
 
-func RemoveProductFromCart() {
+func RemoveProductFromCart() error {
 }
 
-func BuyItemFromCart() {
+func BuyItemFromCart() error {
 }
 
-func InstantBuy() {
+func InstantBuy() error {
 }
