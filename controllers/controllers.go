@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // TODO: CREATE USER AND PRODUCT COLLECTION
@@ -22,11 +23,23 @@ var (
 )
 
 func HashPassword(password string) string {
-
+	hash_pass, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		log.Panic(err)
+	}
+	return string(hash_pass)
 }
 
 func VerifyPassword(entered_password string, password_in_db string) (bool, string) {
-	return
+	err := bcrypt.CompareHashAndPassword([]byte(password_in_db), []byte(entered_password))
+	valid := true
+	msg := ""
+	if err != nil {
+		valid = false
+		msg = "Authentication Failed No Access"
+	}
+
+	return valid, msg
 }
 
 func Signup() gin.HandlerFunc {
@@ -83,7 +96,7 @@ func Signup() gin.HandlerFunc {
 			})
 		}
 
-		password := *user.Password
+		password := HashPassword(*user.Password)
 		user.Password = &password
 		user.Created_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
