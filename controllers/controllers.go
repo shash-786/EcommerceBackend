@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/shash-786/EcommerceBackend/database"
 	"github.com/shash-786/EcommerceBackend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,9 +19,9 @@ import (
 
 // TODO: CREATE USER AND PRODUCT COLLECTION
 var (
-	validate          = validator.New()
-	UserCollection    *mongo.Client
-	ProductCollection *mongo.Client
+	validate                            = validator.New()
+	UserCollection    *mongo.Collection = database.UserData(database.Client, "User")
+	ProductCollection *mongo.Collection = database.ProductData(database.Client, "Product")
 )
 
 func HashPassword(password string) string {
@@ -164,10 +166,71 @@ func ProductViewerAdmin() gin.HandlerFunc {
 
 func SearchProduct() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// RETURNS ALL THE PRODUCTS PRESENT
+
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		cursor, err := ProductCollection.Find(ctx, bson.D{{}})
+		if err != nil {
+			log.Println("Error in Finding Products")
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+		}
+
+		products_slice := make([]models.Product, 0)
+
+		err = cursor.All(ctx, &products_slice)
+		if err != nil {
+			log.Println("Error in copying the Products to product_slice")
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+		}
+
+		defer cursor.Close(ctx)
+
+		// Redundant Error Check
+		if cursor.Err() != nil {
+			log.Println("Error Iteration of the Cursor")
+			_ = c.AbortWithError(http.StatusBadRequest, err)
+		}
+
+		c.IndentedJSON(http.StatusOK, products_slice)
 	}
 }
 
 func SearchProductByQuery() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		product_query_name := c.Query("name")
+		if product_query_name == "" {
+			log.Println("Not given any Product query name")
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No Product Name Given"))
+		}
+
+		searchproductslice := make([]models.Product, 0)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		searchproductdb, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": product_query_name}})
+		if err != nil {
+			log.Println("Error in Fetching products")
+			_ = c.AbortWithError(http.StatusNotFound, err)
+		}
+
+		defer searchproductdb.Close(ctx)
+
+		err = searchproductdb.All(ctx, searchproductslice)
+		if err != nil {
+			log.Println("Error in copying the Products to product_slice")
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+		}
+
+		// Redundant Error Check
+		if searchproductdb.Err() != nil {
+			log.Println("Error Iteration of the Cursor")
+			_ = c.AbortWithError(http.StatusBadRequest, err)
+		}
+
+		c.IndentedJSON(http.StatusOK, searchproductslice)
 	}
 }
