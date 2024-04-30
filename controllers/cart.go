@@ -9,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shash-786/EcommerceBackend/database"
+	"github.com/shash-786/EcommerceBackend/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -105,6 +107,82 @@ func (app *Application) RemoveItemFromCart() gin.HandlerFunc {
 
 func (app *Application) GetItemFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		user_id := c.Query("id")
+		if user_id == "" {
+			log.Println("The User Id field is empty")
+			c.AbortWithStatus(http.StatusNotFound)
+		}
+
+		user_obj_id, err := primitive.ObjectIDFromHex(user_id)
+		if err != nil {
+			log.Println("Error Converting Id to ObjectID")
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
+		defer cancel()
+
+		var user_profile models.User
+		err = UserCollection.FindOne(ctx, bson.M{"_id": user_obj_id}).Decode(&user_profile)
+
+		if err != nil {
+			log.Println("Error Finding the User in the database")
+			_ = c.AbortWithError(http.StatusNotFound, err)
+		}
+
+		// match, unwind and group
+		// Aggregation Pipeline Creation
+		// filter_match --> finds the user
+		// unwind 		--> separates all the Users cart items into separate documents
+		// group 		--> groups all the documents by user id and displays the total of the price
+
+		filter_match := bson.D{
+			{
+				Key: "$match", Value: bson.D{
+					primitive.E{Key: "_id", Value: user_obj_id},
+				},
+			},
+		}
+
+		unwind := bson.D{
+			{
+				Key: "$unwind", Value: bson.D{
+					primitive.E{Key: "$path", Value: "$user_cart"},
+				},
+			},
+		}
+
+		group := bson.D{
+			{
+				Key: "$group", Value: bson.D{
+					primitive.E{Key: "_id", Value: user_obj_id},
+					primitive.E{Key: "total", Value: bson.D{
+						primitive.E{Key: "$sum", Value: "$user_cart.price"},
+					}},
+				},
+			},
+		}
+
+		var cursor *mongo.Cursor
+		cursor, err = UserCollection.Aggregate(ctx, mongo.Pipeline{filter_match, unwind, group})
+		if err != nil {
+			log.Println("Error in the MongoAggregation Query")
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+		}
+		defer cursor.Close(ctx)
+
+		// why is this a slice??
+		var aggregate_query_results []bson.M
+
+		if err = cursor.All(ctx, &aggregate_query_results); err != nil {
+			log.Println("Error in the Cursor Decoding")
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+		}
+
+		for _, primitive_map := range aggregate_query_results {
+			c.IndentedJSON(http.StatusOK, primitive_map["total"])
+			c.IndentedJSON(http.StatusOK, user_profile.User_Cart)
+		}
 	}
 }
 
