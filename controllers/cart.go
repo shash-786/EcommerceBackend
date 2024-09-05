@@ -59,7 +59,7 @@ func (app *Application) AddToCart() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		err = database.AddProductToCart(ctx, app.productCollection, app.productCollection, product_obj_id, user_query_id)
+		err = database.AddProductToCart(ctx, app.productCollection, app.userCollection, product_obj_id, user_query_id)
 		if err != nil {
 			log.Println("panic: controllers/cart Database AddtoCart error")
 			c.JSON(http.StatusInternalServerError, gin.H{

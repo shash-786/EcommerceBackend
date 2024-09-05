@@ -110,8 +110,8 @@ func EditHomeAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
-			log.Println("Empty ProductID given")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No ProductID Available"))
+			log.Println("Empty UserID given")
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No UserID Available"))
 		}
 
 		user_obj_id, _ := primitive.ObjectIDFromHex(user_id)

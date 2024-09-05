@@ -17,7 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO: CREATE USER AND PRODUCT COLLECTION
 var (
 	validate                            = validator.New()
 	UserCollection    *mongo.Collection = database.UserData(database.Client, "User")
@@ -109,7 +108,7 @@ func Signup() gin.HandlerFunc {
 
 		user.User_Cart = make([]models.ProductUser, 0)
 		user.Address_Detail = make([]models.Address, 0)
-		user.Order_Status = make([]models.Order, 0)
+		user.Orders = make([]models.Order, 0)
 
 		if _, inserterr := UserCollection.InsertOne(ctx, user); inserterr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
