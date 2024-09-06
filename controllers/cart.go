@@ -77,13 +77,13 @@ func (app *Application) RemoveItemFromCart() gin.HandlerFunc {
 		user_query_id := c.Query("id")
 		if user_query_id == "" {
 			log.Println("The User Query ID Is nil")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("Empty UserID Given"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("empty userid given"))
 		}
 
 		product_query_id := c.Query("prod_id")
 		if product_query_id == "" {
 			log.Println("The Product Query ID Is nil")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("Empty Product Given"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("empty product given"))
 		}
 
 		product_obj_id, err := primitive.ObjectIDFromHex(product_query_id)
@@ -191,7 +191,7 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 		product_query_id := c.Query("prod_id")
 		if product_query_id == "" {
 			log.Println("No Product Query ID Found")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("Empty Product Query ID"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("empty product query id"))
 		}
 
 		product_obj_id, err := primitive.ObjectIDFromHex(product_query_id)
@@ -203,7 +203,7 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 		user_query_id := c.Query("id")
 		if user_query_id == "" {
 			log.Println("The User Query ID Is nil")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("Empty UserID Given"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("empty user id given"))
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
@@ -224,7 +224,7 @@ func (app *Application) BuyFromCart() gin.HandlerFunc {
 		user_query_id := c.Query("id")
 		if user_query_id == "" {
 			log.Println("The User Query ID Is nil")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("Empty UserID Given"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("empty user id given"))
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)

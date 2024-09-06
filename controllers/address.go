@@ -63,12 +63,12 @@ func AddAddress() gin.HandlerFunc {
 		}
 
 		cursor, err := UserCollection.Aggregate(ctx, mongo.Pipeline{filter_match, unwind, group})
-		defer cursor.Close(ctx)
 
 		if err != nil {
 			log.Println("Aggregate Failed")
 			_ = c.AbortWithError(http.StatusInternalServerError, err)
 		}
+		defer cursor.Close(ctx)
 
 		var aggregate_query_results []bson.M
 		if err = cursor.All(ctx, &aggregate_query_results); err != nil {
@@ -111,7 +111,7 @@ func EditHomeAddress() gin.HandlerFunc {
 		user_id := c.Query("id")
 		if user_id == "" {
 			log.Println("Empty UserID given")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No UserID Available"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("no user id available"))
 		}
 
 		user_obj_id, _ := primitive.ObjectIDFromHex(user_id)
@@ -150,7 +150,7 @@ func EditWorkAddress() gin.HandlerFunc {
 		user_id := c.Query("id")
 		if user_id == "" {
 			log.Println("Empty ProductID given")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No ProductID Available"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("no product id available"))
 		}
 
 		user_obj_id, _ := primitive.ObjectIDFromHex(user_id)
@@ -189,7 +189,7 @@ func DeleteAddress() gin.HandlerFunc {
 		user_id := c.Query("id")
 		if user_id == "" {
 			log.Println("Empty ProductID given")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No ProductID Available"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("no product id available"))
 		}
 
 		user_obj_id, err := primitive.ObjectIDFromHex(user_id)
