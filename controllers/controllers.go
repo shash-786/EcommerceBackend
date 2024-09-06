@@ -160,6 +160,28 @@ func Login() gin.HandlerFunc {
 
 func ProductViewerAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var product models.Product
+
+		if err := c.BindJSON(&product); err != nil {
+			log.Println("Admin product viewer error")
+			_ = c.AbortWithError(http.StatusBadRequest, err)
+		}
+
+		product.Product_ID = primitive.NewObjectID()
+
+		if _, err := ProductCollection.InsertOne(ctx, product); err != nil {
+			log.Println("Admin Insert Product Error!")
+			c.JSON(http.StatusBadGateway, gin.H{
+				"error": err,
+			})
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "Product Inserted successfully!",
+		})
 	}
 }
 
@@ -202,7 +224,7 @@ func SearchProductByQuery() gin.HandlerFunc {
 		product_query_name := c.Query("name")
 		if product_query_name == "" {
 			log.Println("Not given any Product query name")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("No Product Name Given"))
+			_ = c.AbortWithError(http.StatusBadRequest, errors.New("no product name given"))
 		}
 
 		searchproductslice := make([]models.Product, 0)

@@ -202,8 +202,16 @@ func DeleteAddress() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 		defer cancel()
 
-		filter := bson.D{{"_id", user_obj_id}}
-		update := bson.D{{Key: "$set", Value: bson.D{{"address", empty_addresses}}}}
+		filter := bson.D{
+			primitive.E{Key: "_id", Value: user_obj_id},
+		}
+
+		update := bson.D{
+			primitive.E{Key: "$set", Value: bson.D{
+				primitive.E{Key: "address", Value: empty_addresses},
+			}},
+		}
+
 		_, err = UserCollection.UpdateOne(ctx, filter, update)
 
 		if err != nil {
