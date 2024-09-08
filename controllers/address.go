@@ -46,7 +46,7 @@ func AddAddress() gin.HandlerFunc {
 		unwind := bson.D{
 			{
 				Key: "$unwind", Value: bson.D{
-					primitive.E{Key: "$path", Value: "$address"},
+					primitive.E{Key: "path", Value: "$address"},
 				},
 			},
 		}
@@ -129,10 +129,10 @@ func EditHomeAddress() gin.HandlerFunc {
 		update := bson.D{
 			{
 				Key: "$set", Value: bson.D{
-					primitive.E{Key: "$address.0.house", Value: edit_address.House},
-					primitive.E{Key: "$address.0.street", Value: edit_address.Street},
-					primitive.E{Key: "$address.0.city", Value: edit_address.City},
-					primitive.E{Key: "$address.0.pincode", Value: edit_address.Pincode},
+					primitive.E{Key: "address.0.house", Value: edit_address.House},
+					primitive.E{Key: "address.0.street", Value: edit_address.Street},
+					primitive.E{Key: "address.0.city", Value: edit_address.City},
+					primitive.E{Key: "address.0.pincode", Value: edit_address.Pincode},
 				},
 			},
 		}
@@ -168,10 +168,10 @@ func EditWorkAddress() gin.HandlerFunc {
 		update := bson.D{
 			{
 				Key: "$set", Value: bson.D{
-					primitive.E{Key: "$address.1.house", Value: edit_address.House},
-					primitive.E{Key: "$address.1.street", Value: edit_address.Street},
-					primitive.E{Key: "$address.1.city", Value: edit_address.City},
-					primitive.E{Key: "$address.1.pincode", Value: edit_address.Pincode},
+					primitive.E{Key: "address.1.house", Value: edit_address.House},
+					primitive.E{Key: "address.1.street", Value: edit_address.Street},
+					primitive.E{Key: "address.1.city", Value: edit_address.City},
+					primitive.E{Key: "address.1.pincode", Value: edit_address.Pincode},
 				},
 			},
 		}

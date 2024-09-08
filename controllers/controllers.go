@@ -164,7 +164,11 @@ func Login() gin.HandlerFunc {
 		}
 
 		// TODO: UPDATE TOKEN LOGIC
-
+		token, refreshtoken, err := tokens.TokenGenerate(*database_user.Email, *database_user.First_Name, *database_user.Last_Name, database_user.User_ID)
+		if err != nil {
+			log.Fatalf("login token update fail : %v", err)
+		}
+		tokens.UpdateAllTokens(token, refreshtoken, database_user.User_ID)
 		c.JSON(http.StatusFound, database_user)
 	}
 }
@@ -243,7 +247,11 @@ func SearchProductByQuery() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
-		searchproductdb, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": product_query_name}})
+		searchproductdb, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{
+			"$regex":   product_query_name,
+			"$options": "i",
+		},
+		})
 		if err != nil {
 			log.Println("Error in Fetching products")
 			_ = c.AbortWithError(http.StatusNotFound, err)
@@ -251,7 +259,7 @@ func SearchProductByQuery() gin.HandlerFunc {
 
 		defer searchproductdb.Close(ctx)
 
-		err = searchproductdb.All(ctx, searchproductslice)
+		err = searchproductdb.All(ctx, &searchproductslice)
 		if err != nil {
 			log.Println("Error in copying the Products to product_slice")
 			_ = c.AbortWithError(http.StatusInternalServerError, err)

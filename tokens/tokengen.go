@@ -92,9 +92,9 @@ func UpdateAllTokens(signedtoken, signedrefreshtoken, userid string) {
 	update := bson.D{
 		{
 			Key: "$set", Value: bson.D{
-				primitive.E{Key: "$token", Value: signedtoken},
-				primitive.E{Key: "$refresh_token", Value: signedrefreshtoken},
-				primitive.E{Key: "$updated_at", Value: updated_at},
+				primitive.E{Key: "token", Value: signedtoken},
+				primitive.E{Key: "refresh_token", Value: signedrefreshtoken},
+				primitive.E{Key: "updated_at", Value: updated_at},
 			},
 		},
 	}
@@ -104,5 +104,4 @@ func UpdateAllTokens(signedtoken, signedrefreshtoken, userid string) {
 		log.Panicln(err)
 	}
 
-	return
 }

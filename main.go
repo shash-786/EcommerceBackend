@@ -26,7 +26,7 @@ func main() {
 	router.Use(middleware.Authentication())
 
 	var client *mongo.Client = database.Client
-	var prodCollection *mongo.Collection = database.ProductData(client, "Products")
+	var prodCollection *mongo.Collection = database.ProductData(client, "Product")
 	var userCollection *mongo.Collection = database.UserData(client, "User")
 
 	app := controllers.NewApplication(prodCollection, userCollection)
@@ -35,7 +35,7 @@ func main() {
 	router.GET("/user/removefromcart", app.RemoveItemFromCart())
 	router.GET("/user/getitemsfromcart", app.GetItemFromCart())
 	router.GET("/user/buycart", app.BuyFromCart())
-	router.GET("/user/InstantBuy", app.InstantBuy())
+	router.GET("/user/instantbuy", app.InstantBuy())
 
 	collections, err := client.Database("Ecommerce").ListCollectionNames(context.TODO(), bson.D{{}})
 	if err != nil {

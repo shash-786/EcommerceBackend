@@ -56,7 +56,7 @@ func (app *Application) AddToCart() gin.HandlerFunc {
 			return
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		err = database.AddProductToCart(ctx, app.productCollection, app.userCollection, product_obj_id, user_query_id)
@@ -147,7 +147,7 @@ func (app *Application) GetItemFromCart() gin.HandlerFunc {
 		unwind := bson.D{
 			{
 				Key: "$unwind", Value: bson.D{
-					primitive.E{Key: "$path", Value: "$user_cart"},
+					primitive.E{Key: "path", Value: "$user_cart"},
 				},
 			},
 		}
