@@ -4,27 +4,46 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func DBSet() *mongo.Client {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	connection_str, flag := os.LookupEnv("MONGO_CONN_STRING")
+	if !flag {
+		log.Fatal("ENV CONN STR NULL")
+	}
+
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*20)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://development:testpassword@localhost:27017"))
+	clientoption := options.Client().ApplyURI(connection_str)
+	client, err := mongo.Connect(ctx, clientoption)
 	if err != nil {
 		log.Fatalf("Error Connecting to the MongoDB: %v", err)
 	}
 
-	err = client.Ping(context.TODO(), nil)
-	if err != nil {
-		log.Fatalf("Error Pinging MongoDB: %v", err)
-	}
+	// err = client.Ping(ctx, nil)
+	// if err != nil {
+	// 	log.Fatalf("Error Pinging MongoDB: %v", err)
+	// }
 
-	fmt.Println("Successfullly Connected to the client")
+	// defer func() {
+	// 	if err = client.Disconnect(context.TODO()); err != nil {
+	// 		panic(err)
+	// 	}
+	// }()
+
+	// Send a ping to confirm a successful connection
+	if err := client.Database("Admin").RunCommand(context.TODO(), bson.D{primitive.E{Key: "ping", Value: 1}}).Err(); err != nil {
+		panic(err)
+	}
+	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 	return client
 }
 

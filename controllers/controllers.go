@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/shash-786/EcommerceBackend/database"
 	"github.com/shash-786/EcommerceBackend/models"
+	"github.com/shash-786/EcommerceBackend/tokens"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -105,6 +106,16 @@ func Signup() gin.HandlerFunc {
 		user.User_ID = user.ID.Hex()
 
 		// TODO: Implement For Refresh and Tokens
+		token, refresh_token, err := tokens.TokenGenerate(*user.Email, *user.First_Name, *user.Last_Name, user.User_ID)
+		if err != nil {
+			log.Println("Error in token generation")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err,
+			})
+			return
+		}
+		user.Token = &token
+		user.Refresh_Token = &refresh_token
 
 		user.User_Cart = make([]models.ProductUser, 0)
 		user.Address_Detail = make([]models.Address, 0)
