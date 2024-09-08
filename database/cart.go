@@ -19,16 +19,10 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 		return err
 	}
 
-	searchfromdb, err := prodCollection.Find(ctx, bson.M{"_id": product_obj_id})
+	var product models.ProductUser
+	err = prodCollection.FindOne(ctx, bson.M{"_id": product_obj_id}).Decode(&product)
 	if err != nil {
-		log.Println("Can't find Product")
-		return err
-	}
-
-	var product_cart []models.ProductUser
-	err = searchfromdb.All(ctx, &product_cart)
-	if err != nil {
-		log.Println("Can't decode Product")
+		log.Printf("Error Decoding Product: %v", err)
 		return err
 	}
 
@@ -38,9 +32,7 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 
 	update := bson.D{
 		primitive.E{Key: "$push", Value: bson.D{
-			primitive.E{Key: "user_cart", Value: bson.D{
-				primitive.E{Key: "$each", Value: product_cart},
-			}},
+			primitive.E{Key: "user_cart", Value: product},
 		}},
 	}
 
@@ -120,7 +112,7 @@ func BuyItemFromCart(ctx context.Context, prodCollection, userCollection *mongo.
 
 	unwind := bson.D{
 		primitive.E{Key: "$unwind", Value: bson.D{
-			primitive.E{Key: "$path", Value: "$user_cart"},
+			primitive.E{Key: "path", Value: "$user_cart"},
 		}},
 	}
 
@@ -146,22 +138,22 @@ func BuyItemFromCart(ctx context.Context, prodCollection, userCollection *mongo.
 		return err
 	}
 
-	var total_price int
+	var total_price int32
 	for _, val := range results {
 		price := val["total_price"]
-		total_price = price.(int)
+		total_price = price.(int32)
 	}
-	order.Price = total_price //ASSIGNMENT OF THE TOTAL PRICE ONTO THE ORDER STRUCT
+	order.Price = int(total_price) //ASSIGNMENT OF THE TOTAL PRICE ONTO THE ORDER STRUCT
 	order.Order_Cart = make([]models.ProductUser, len(user.User_Cart))
 	copy(order.Order_Cart, user.User_Cart)
 
 	filter := bson.D{
-		primitive.E{Key: "$_id", Value: user_obj_id},
+		primitive.E{Key: "_id", Value: user_obj_id},
 	}
 
 	update := bson.D{
 		primitive.E{Key: "$push", Value: bson.D{
-			primitive.E{Key: "$orders", Value: order},
+			primitive.E{Key: "orders", Value: order},
 		}},
 	}
 
@@ -173,7 +165,7 @@ func BuyItemFromCart(ctx context.Context, prodCollection, userCollection *mongo.
 	new_empty_user_cart := make([]models.ProductUser, 0)
 	update1 := bson.D{
 		primitive.E{Key: "$set", Value: bson.D{
-			primitive.E{Key: "$user_cart", Value: new_empty_user_cart},
+			primitive.E{Key: "user_cart", Value: new_empty_user_cart},
 		}},
 	}
 
@@ -184,7 +176,7 @@ func BuyItemFromCart(ctx context.Context, prodCollection, userCollection *mongo.
 	return nil
 }
 
-func InstantBuy(ctx context.Context, userCollection, prodCollection *mongo.Collection, usr_id string, product_obj_id primitive.ObjectID) error {
+func InstantBuy(ctx context.Context, prodCollection, userCollection *mongo.Collection, usr_id string, product_obj_id primitive.ObjectID) error {
 	user_obj_id, err := primitive.ObjectIDFromHex(usr_id)
 	if err != nil {
 		log.Println("database/cart : Cannot create Object ID")
@@ -221,7 +213,7 @@ func InstantBuy(ctx context.Context, userCollection, prodCollection *mongo.Colle
 
 	update := bson.D{
 		primitive.E{Key: "$push", Value: bson.D{
-			primitive.E{Key: "$orders", Value: order},
+			primitive.E{Key: "orders", Value: order},
 		}},
 	}
 
